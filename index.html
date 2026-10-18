@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Beseri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Comfortaa:wght@700&display=swap" rel="stylesheet">
+<!--
+  Beseri share page (GitHub Pages). Everything is in the link after "#", which browsers never
+  send to a server, so nothing about the shared plan is stored or logged anywhere.
+  Link format: https://USER.github.io/REPO/#<base64url JSON>
+  JSON: { "k": "a"|"e", "t": title, "s": "2026-10-18T19:00", "e": "2026-10-18T21:00",
+          "z": "+03:00", "c": "MEDIA", "p": place, "n": note, "u": url }
+-->
+<style>
+:root {
+  --ground: #F5F5F2; --surface: #FFFFFF; --ink: #15171A; --muted: #5F636B; --line: #E4E4DF;
+  --btn: linear-gradient(180deg, #A3233F 0%, #5A0F24 100%);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ground: #121417; --surface: #1C1F24; --ink: #EDEEF0; --muted: #A2A6AE; --line: #2C3036; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--ground); color: var(--ink); font-family: 'Manrope', system-ui, sans-serif; display: flex; justify-content: center; }
+main { width: 100%; max-width: 440px; padding: 28px 16px 40px; display: flex; flex-direction: column; gap: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: 'Comfortaa', sans-serif; font-weight: 700; font-size: 26px; letter-spacing: -0.02em; }
+.card { background: var(--surface); border-radius: 22px; overflow: hidden; box-shadow: 0 14px 30px -18px rgba(21,23,26,.35); }
+.head { padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+.pill { align-self: flex-start; height: 26px; padding: 0 10px; border-radius: 13px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+.dot { width: 8px; height: 8px; border-radius: 4px; }
+h1 { margin: 4px 0 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; }
+.rows { border-top: 1px solid var(--line); padding: 14px 20px; display: flex; flex-direction: column; gap: 12px; font-size: 15px; }
+.row { display: flex; gap: 12px; align-items: flex-start; }
+.row svg { flex-shrink: 0; margin-top: 2px; color: var(--muted); }
+.note { color: var(--muted); line-height: 1.5; }
+.actions { display: flex; flex-direction: column; gap: 10px; }
+.btn { height: 54px; border-radius: 16px; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; font: 700 16px 'Manrope', sans-serif; text-decoration: none; cursor: pointer; }
+.primary { background: var(--btn); color: #fff; box-shadow: 0 8px 16px -8px rgba(90,15,36,.55), inset 0 1px 0 rgba(255,255,255,.28); }
+.secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.foot { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
+.empty { text-align: center; color: var(--muted); padding: 40px 10px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand" aria-label="beseri">
+    <svg width="34" height="34" viewBox="0 0 64 64" fill="none" stroke-linecap="round" aria-hidden="true"><g transform="translate(0 -3)"><path d="M16.29 35.49L8.9 32.43" stroke="#0F766E" stroke-width="6"/><path d="M25.49 26.29L22.43 18.9" stroke="#BE123C" stroke-width="6"/><path d="M38.51 26.29L41.57 18.9" stroke="#B45309" stroke-width="6"/><path d="M47.71 35.49L55.1 32.43" stroke="#0369A1" stroke-width="6"/><path d="M21 42A11 11 0 0 1 43 42Z" fill="currentColor"/><path d="M8 42H56" stroke="currentColor" stroke-width="5"/></g></svg>
+    beseri
+  </div>
+  <div id="app" style="display:flex;flex-direction:column;gap:16px"></div>
+  <p class="foot" id="foot"></p>
+</main>
+<script>
+(function () {
+  var ro = /^ro/i.test(navigator.language || '');
+  var T = ro ? {
+    when: 'Când', where: 'Unde', ics: 'Adaugă în calendarul meu', google: 'Adaugă în Google Calendar', open: 'Deschide în Beseri', link: 'Detalii și bilete',
+    sent: 'Cineva ți-a trimis acest plan din Beseri.', foot: 'Planul e salvat doar în acest link — nu e păstrat pe niciun server.',
+    bad: 'Linkul nu e complet. Cere-i persoanei care ți l-a trimis să-l distribuie din nou.',
+    cats: { SPORT: 'Mișcare', EVENTS: 'Evenimente', HOBBIES: 'Creație', INDOOR: 'Socializare', YOU_TIME: 'Pentru tine', MEDIA: 'Media' }, locale: 'ro-RO'
+  } : {
+    when: 'When', where: 'Where', ics: 'Add to my calendar', google: 'Add to Google Calendar', open: 'Open in Beseri', link: 'Details and tickets',
+    sent: 'Someone shared this plan with you from Beseri.', foot: 'The plan lives only in this link — it is not stored on any server.',
+    bad: 'This link is incomplete. Ask the person who sent it to share it again.',
+    cats: { SPORT: 'Move', EVENTS: 'Events', HOBBIES: 'Create', INDOOR: 'Socialize', YOU_TIME: 'You time', MEDIA: 'Media' }, locale: 'en-GB'
+  };
+  var COLORS = { SPORT: ['#0F766E', '#CCF5EE'], EVENTS: ['#BE123C', '#FFE4E6'], HOBBIES: ['#B45309', '#FEF0C7'], INDOOR: ['#0369A1', '#DDF0FC'], YOU_TIME: ['#6D28D9', '#EDE9FE'], MEDIA: ['#4D7C0F', '#E8F7CF'] };
+  var app = document.getElementById('app');
+  document.getElementById('foot').textContent = T.foot;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function decode(h) {
+    var b = h.replace(/-/g, '+').replace(/_/g, '/'); while (b.length % 4) b += '=';
+    var bin = atob(b), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+  var d;
+  try { d = decode(location.hash.slice(1)); if (!d || !d.t || !d.s) throw 0; } catch (e) { app.innerHTML = '<div class="card"><p class="empty">' + esc(T.bad) + '</p></div>'; return; }
+
+  var zone = /^[+-]\d\d:\d\d$/.test(d.z || '') ? d.z : 'Z';
+  var start = new Date(d.s + (d.s.length === 16 ? ':00' : '') + zone);
+  var end = new Date((d.e || d.s) + ((d.e || d.s).length === 16 ? ':00' : '') + zone);
+  if (isNaN(start)) { app.innerHTML = '<div class="card"><p class="empty">' + esc(T.bad) + '</p></div>'; return; }
+  if (!(end > start)) end = new Date(start.getTime() + 60 * 60000);
+
+  var sameDay = start.toDateString() === end.toDateString();
+  var dFmt = new Intl.DateTimeFormat(T.locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  var tFmt = new Intl.DateTimeFormat(T.locale, { hour: '2-digit', minute: '2-digit' });
+  var when = sameDay ? dFmt.format(start) + ' · ' + tFmt.format(start) + ' – ' + tFmt.format(end)
+                     : dFmt.format(start) + ' ' + tFmt.format(start) + ' – ' + dFmt.format(end) + ' ' + tFmt.format(end);
+  var col = COLORS[d.c] || ['#5A0F24', '#F3E3E7'];
+  var catName = T.cats[d.c] || '';
+  document.title = d.t + ' · Beseri';
+
+  function utc(x) { return x.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }
+  function icsText(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n'); }
+  var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Beseri//Share//EN', 'BEGIN:VEVENT',
+    'UID:' + utc(start) + '-' + Math.random().toString(36).slice(2) + '@beseri', 'DTSTAMP:' + utc(new Date()),
+    'DTSTART:' + utc(start), 'DTEND:' + utc(end), 'SUMMARY:' + icsText(d.t),
+    d.p ? 'LOCATION:' + icsText(d.p) : '', (d.n || d.u) ? 'DESCRIPTION:' + icsText([d.n, d.u].filter(Boolean).join('\n')) : '',
+    'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
+  var icsUrl = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+  var g = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(d.t) +
+    '&dates=' + utc(start) + '/' + utc(end) + (d.p ? '&location=' + encodeURIComponent(d.p) : '') +
+    ((d.n || d.u) ? '&details=' + encodeURIComponent([d.n, d.u].filter(Boolean).join('\n')) : '');
+  // Opens Beseri on Android if installed (custom scheme handled by the app).
+  var openApp = 'beseri://share#' + location.hash.slice(1);
+
+  var ico = function (p) { return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>'; };
+  app.innerHTML =
+    '<p class="note" style="margin:0 0 4px">' + esc(T.sent) + '</p>' +
+    '<div class="card"><div class="head" style="background:linear-gradient(180deg,rgba(255,255,255,.55),' + col[1] + ')">' +
+      (catName ? '<span class="pill" style="background:rgba(255,255,255,.7);color:' + col[0] + '"><span class="dot" style="background:' + col[0] + '"></span>' + esc(catName) + '</span>' : '') +
+      '<h1 style="color:#15171A">' + esc(d.t) + '</h1></div>' +
+    '<div class="rows">' +
+      '<div class="row">' + ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>') + '<span><b>' + esc(when) + '</b></span></div>' +
+      (d.p ? '<div class="row">' + ico('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>') + '<span>' + esc(d.p) + '</span></div>' : '') +
+      (d.n ? '<div class="row note">' + ico('<path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/>') + '<span>' + esc(d.n) + '</span></div>' : '') +
+      (d.u && /^https:\/\//.test(d.u) ? '<div class="row">' + ico('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>') + '<a href="' + esc(d.u) + '" rel="noopener" style="color:inherit;font-weight:700">' + esc(T.link) + '</a></div>' : '') +
+    '</div></div>' +
+    '<div class="actions">' +
+      '<a class="btn primary" href="' + icsUrl + '" download="beseri.ics">' + ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>') + esc(T.ics) + '</a>' +
+      '<a class="btn secondary" href="' + g + '" target="_blank" rel="noopener">' + esc(T.google) + '</a>' +
+      (/android/i.test(navigator.userAgent) ? '<a class="btn secondary" href="' + openApp + '">' + esc(T.open) + '</a>' : '') +
+    '</div>';
+})();
+</script>
+</body>
+</html>
